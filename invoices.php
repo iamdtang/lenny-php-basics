@@ -3,11 +3,19 @@
     SELECT invoices.InvoiceId, invoices.InvoiceDate, invoices.Total, customers.FirstName, customers.LastName
     FROM invoices
     INNER JOIN customers ON invoices.CustomerId = customers.CustomerId
-    ORDER BY customers.LastName
   ";
+
+  if (isset($_GET['q'])) {
+    $sql = $sql . " WHERE customers.FirstName = :first_name";
+  }
 
   $pdo = new PDO('sqlite:chinook.db'); // PHP Data Objects
   $statement = $pdo->prepare($sql); // prepared statements
+
+  if (isset($_GET['q'])) {
+    $statement->bindParam(':first_name', $_GET['q']); // safely bind q query string data (potentially untrusted) to SQL
+  }
+
   $statement->execute(); // executes the SQL
 
   $invoices = $statement->fetchAll(PDO::FETCH_OBJ);
@@ -23,6 +31,15 @@
   <title>Invoices</title>
 </head>
 <body>
+
+  <form action="invoices.php" method="GET">
+    <input
+      type="search"
+      name="q"
+      placeholder="Search by first name"
+    />
+  </form>
+
   <table>
     <thead>
       <tr>
